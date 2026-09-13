@@ -15,6 +15,7 @@
   "dependencies": [
     "xbyak",
     "clib-util",
+    "nlohmann-json",
     "minhook"
   ],
   "default-features": [
