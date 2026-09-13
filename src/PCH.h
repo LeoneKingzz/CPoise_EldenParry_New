@@ -1,7 +1,7 @@
 // ReSharper disable CppUnusedIncludeDirective
 #pragma once
 #define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
+// #define NOMINMAX
 #define NOGDI
 
 #include <RE/Skyrim.h>
@@ -26,6 +26,8 @@
 #include <vector>
 #include "SKSE/Trampoline.h"
 #include <nlohmann/json.hpp>
+
+#define MAGIC_ENUM_RANGE_MAX 256
 #include <magic_enum/magic_enum.hpp>
 
 #define DLLEXPORT __declspec(dllexport)
@@ -74,6 +76,13 @@ namespace stl {
     void write_vfunc() {
         REL::Relocation<std::uintptr_t> vtbl{ F::VTABLE[0] };
         T::func = vtbl.write_vfunc(idx, T::thunk);
+    }
+
+    template <class T>
+    void write_thunk_call(std::uintptr_t a_src)
+    {
+        auto &trampoline = SKSE::GetTrampoline();
+        T::func = trampoline.write_call<5>(a_src, T::thunk);
     }
 
     // source: https://github.com/powerof3/PapyrusExtenderSSE

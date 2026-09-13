@@ -1210,9 +1210,10 @@ public:
 	{
 		a_projectile->SetActorCause(a_actor->GetActorCause());
 		a_projectile->GetProjectileRuntimeData().shooter = a_actor->GetHandle();
-		uint32_t a_collisionFilterInfo = a_actor->GetCollisionFilterInfo(a_collisionFilterInfo);
-		a_projectile_collidable->broadPhaseHandle.collisionFilterInfo &= (0x0000FFFF);
-		a_projectile_collidable->broadPhaseHandle.collisionFilterInfo |= (a_collisionFilterInfo << 16);
+		RE::CFilter a_collisionFilterInfo;
+		a_actor->GetCollisionFilterInfo(a_collisionFilterInfo);
+		a_projectile_collidable->broadPhaseHandle.collisionFilterInfo.filter &= (0x0000FFFF);
+		a_projectile_collidable->broadPhaseHandle.collisionFilterInfo.filter |= (a_collisionFilterInfo.filter << 16);
 	}
 
 		/*Play sound with formid at a certain actor's position.
@@ -1293,8 +1294,8 @@ public:
 		targetHandle.get()->GetLinearVelocity(targetVelocity);
 
 		float projectileGravity = 0.f;
-		if (auto ammo = a_projectile->GetProjectileRuntimeData().ammoSource) {
-			if (auto bgsProjectile = ammo->data.projectile) {
+		if (auto ammo = a_projectile->GetProjectileRuntimeData().ammoSource; ammo) {
+			if (auto bgsProjectile = ammo->GetRuntimeData().data.projectile; bgsProjectile) {
 				projectileGravity = bgsProjectile->data.gravity;
 				if (auto bhkWorld = a_projectile->parentCell->GetbhkWorld()) {
 					if (auto hkpWorld = bhkWorld->GetWorld1()) {
@@ -1458,7 +1459,7 @@ public:
 			return;
 		}
 		if (a_actor) {
-			a_actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, a_actorValue, a_val);
+			a_actor->AsActorValueOwner()->RestoreActorValue(a_actorValue, a_val);
 		}
 	}
 
@@ -1468,7 +1469,7 @@ public:
 			return;
 		}
 		if (a_actor) {
-			a_actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, a_actorValue, -a_val);
+			a_actor->AsActorValueOwner()->RestoreActorValue(a_actorValue, -a_val);
 		}
 	}
 
