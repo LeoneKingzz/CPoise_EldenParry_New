@@ -1,8 +1,4 @@
 #pragma once
-
-#include <SimpleIni.h>
-
-#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace RE

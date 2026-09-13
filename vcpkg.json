@@ -16,6 +16,7 @@
     "xbyak",
     "clib-util",
     "nlohmann-json",
+    "magic-enum",
     "minhook"
   ],
   "default-features": [
