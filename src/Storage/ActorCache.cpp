@@ -111,7 +111,7 @@ float ActorCache::CalculateEquippedWeight(RE::Actor* a_actor)
 			if (auto thisArmor = a_actor->GetWornArmor((BipedObjectSlot)thisSlot)) {
 				equippedWeight += thisArmor->GetWeight();
 				logger::debug("Actor {} Object {} Weight {}", a_actor->GetName(), thisArmor->GetName(), thisArmor->GetWeight());
-				slotsChecked += (int)thisArmor->GetSlotMask();
+				slotsChecked += (int)thisArmor->GetSlotMask().get();
 			} else {
 				slotsChecked += thisSlot;
 			}
