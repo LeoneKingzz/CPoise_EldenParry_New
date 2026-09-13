@@ -1,5 +1,10 @@
 // ReSharper disable CppUnusedIncludeDirective
 #pragma once
+
+#pragma warning(push)
+#pragma warning(disable : 5105)
+#pragma warning(disable : 4189)
+#pragma warning(pop)
 #define WIN32_LEAN_AND_MEAN
 // #define NOMINMAX
 #define NOGDI
