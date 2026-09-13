@@ -26,7 +26,7 @@
 #include <vector>
 #include "SKSE/Trampoline.h"
 #include <nlohmann/json.hpp>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 #define DLLEXPORT __declspec(dllexport)
 
