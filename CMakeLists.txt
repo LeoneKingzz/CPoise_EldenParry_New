@@ -36,7 +36,9 @@ configure_file(
         @ONLY
 )
 
-add_library("${PROJECT_NAME}" SHARED)
+add_library("${PROJECT_NAME}" SHARED
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/Plugin.h
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/version.rc)
 
 target_compile_features(
         "${PROJECT_NAME}"
