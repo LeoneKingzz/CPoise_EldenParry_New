@@ -125,12 +125,12 @@ float HitEventHandler::RecalculateStagger(RE::Actor* target, RE::Actor* aggresso
 				bool weaponblock = hitData->flags.all(RE::HitData::Flag::kBlockWithWeapon);
 				auto block_score = 1.0f - (target->AsActorValueOwner()->GetActorValue(RE::ActorValue::kBlock) / 100.0f);
 				if (weaponblock) {
-					if (block_score < 0.30) {
-						block_score = 0.30;
+					if (block_score < 0.30f) {
+						block_score = 0.30f;
 					}
 				} else {
-					if (block_score < 0.15) {
-						block_score = 0.15;
+					if (block_score < 0.15f) {
+						block_score = 0.15f;
 					}
 				}
 				stagger *= block_score;

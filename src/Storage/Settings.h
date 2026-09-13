@@ -44,25 +44,25 @@ public:
 
 	struct
 	{
-		float BaseMult{ 50 };
-		float ArmorMult{ 0.25 };
+		float BaseMult{ 50.0f };
+		float ArmorMult{ 0.25f };
 		float RegenRate{ 0.050f };
 	} Health;
 
 	struct
 	{
-		float BashMult{ 0.001 };
-		float BowMult{ 1.0 };
-		float CreatureMult{ 2.0 };
-		float MeleeMult{ 1.0 };
-		float UnarmedMult{ 2.0 };
+		float BashMult{ 0.001f };
+		float BowMult{ 1.0f };
+		float CreatureMult{ 2.0f };
+		float MeleeMult{ 1.0f };
+		float UnarmedMult{ 2.0f };
 
-		float ToPCMult{ 1.0 };
-		float ToNPCMult{ 1.0 };
+		float ToPCMult{ 1.0f };
+		float ToNPCMult{ 1.0f };
 
-		float WeightContribution{ 2.0 };
-		float GauntletWeightContribution{ 1.0 };
-		float UnarmedSkillContribution{ 0.2 };
+		float WeightContribution{ 2.0f };
+		float GauntletWeightContribution{ 1.0f };
+		float UnarmedSkillContribution{ 0.2f };
 
 	} Damage;
 
