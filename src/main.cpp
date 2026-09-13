@@ -67,7 +67,8 @@ void Init() {
     messaging->RegisterListener("SKSE", MessageHandler);
 }
 
-void Load(bool VR) {
+void Load([[maybe_unused]] bool VR)
+{
     // hooks::OnMeleeHitHook::install_protected();
     // hooks::InstallCombat(VR);
     // hooks::DrinkPotionHook::Install();
