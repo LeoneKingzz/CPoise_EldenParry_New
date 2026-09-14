@@ -144,9 +144,10 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse) {
     InitializeLog();
     logger::info("Loaded plugin");
     
-    SKSE::Init(a_skse, false);
+    //SKSE::Init(a_skse, false);
+    SKSE::Init(a_skse, {1 << 5});
     // SKSE::AllocTrampoline(kTrampolineSize);
-    SKSE::AllocTrampoline(1 << 5);
+    // SKSE::AllocTrampoline(1 << 5);
     PreLoad();
     onSKSEInit();
     Init();
