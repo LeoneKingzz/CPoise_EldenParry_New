@@ -38,18 +38,50 @@ configure_file(
 
 add_library("${PROJECT_NAME}" SHARED
         ${CMAKE_CURRENT_BINARY_DIR}/cmake/Plugin.h
-        ${CMAKE_CURRENT_BINARY_DIR}/cmake/version.rc)
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake/version.rc
+        src/ActorValues/AVInterface.h
+        src/ActorValues/AVManager.h
+        src/ActorValues/AVManager.cpp
+        src/Events/Events.h
+        src/Events/Events.cpp
+        src/Hooks/ActiveEffectHandler.h
+        src/Hooks/ActiveEffectHandler.cpp
+        src/Hooks/HitEventHandler.h
+        src/Hooks/HitEventHandler.cpp
+        src/Hooks/Hooks.h
+        src/Hooks/Hooks.cpp
+        src/Hooks/PoiseAV.h
+        src/Hooks/PoiseAV.cpp
+        src/lib/PrecisionAPI.h
+        src/lib/ValhallaCombatAPI.h
+        src/Storage/ActorCache.h
+        src/Storage/ActorCache.cpp
+        src/Storage/Serialization.h
+        src/Storage/Serialization.cpp
+        src/Storage/Settings.h
+        src/Storage/Settings.cpp
+        src/UI/PoiseAVHUD.h
+        src/UI/PoiseAVHUD.cpp
+        src/AnimEventHandler.h
+        src/AnimEventHandler.cpp
+        src/EldenParry.h
+        src/EldenParry.cpp
+        src/FormUtil.h
+        src/Hooks.h
+        src/main.cpp
+        src/PCH.h
+        src/Settings.h
+        src/Settings.cpp
+        src/TrueHUDAPI.h
+        src/Utils.hpp)
+
+
 
 target_compile_features(
         "${PROJECT_NAME}"
         PRIVATE
         cxx_std_23
 )
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-include(AddCXXFiles)
-add_cxx_files("${PROJECT_NAME}")
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/PCH.h)
 
@@ -109,6 +141,7 @@ add_subdirectory(${CommonLibPath} ${CommonLibName} EXCLUDE_FROM_ALL)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(minhook CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 target_include_directories(
         ${PROJECT_NAME}
