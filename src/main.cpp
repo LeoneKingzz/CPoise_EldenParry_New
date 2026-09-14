@@ -145,10 +145,9 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse) {
     logger::info("Loaded plugin");
     
     SKSE::Init(a_skse, false);
-    // SKSE::Init(a_skse, {1 << 5});
-    auto &trampoline = SKSE::GetTrampoline();
-    trampoline.allocate(1 << 5);
-    // SKSE::AllocTrampoline(1 << 5);
+    
+    SKSE::AllocTrampoline(1 << 5);
+    
     PreLoad();
     onSKSEInit();
     Init();
