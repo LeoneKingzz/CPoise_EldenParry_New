@@ -12,7 +12,7 @@
 #include "UI/PoiseAVHUD.h"
 #include "Utils.hpp"
 
-// constexpr auto kTrampolineSize = 14;
+constexpr auto kTrampolineSize = 14;
 
 void MessageHandler(SKSE::MessagingInterface::Message *a_msg)
 {
@@ -144,9 +144,9 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse) {
     InitializeLog();
     logger::info("Loaded plugin");
     
-    //SKSE::Init(a_skse, false);
-    SKSE::Init(a_skse, {1 << 5});
-    // SKSE::AllocTrampoline(kTrampolineSize);
+    SKSE::Init(a_skse, false);
+    // SKSE::Init(a_skse, {1 << 5});
+    SKSE::AllocTrampoline(kTrampolineSize);
     // SKSE::AllocTrampoline(1 << 5);
     PreLoad();
     onSKSEInit();
