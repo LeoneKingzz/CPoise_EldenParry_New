@@ -28,6 +28,9 @@
     },
     {
       "name": "magic-enum"
+    },
+    {
+      "name": "xbyak"
     }
   ],
   "builtin-baseline": "ee12231b20c95013c6638d845d04c91559a1d1ff"
