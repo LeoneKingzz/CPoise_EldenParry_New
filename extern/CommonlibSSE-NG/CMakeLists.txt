@@ -8,7 +8,7 @@ option(SKSE_SUPPORT_PATCH_SAFETY "Validate Trampoline::write_branch patch sites 
 option(ENABLE_SKYRIM_SE "Enable support for Skyrim SE in the dynamic runtime feature." ON)
 option(ENABLE_SKYRIM_AE "Enable support for Skyrim AE in the dynamic runtime feature." ON)
 option(ENABLE_SKYRIM_VR "Enable support for Skyrim VR in the dynamic runtime feature." ON)
-option(BUILD_TESTS "Enable building of the unit tests." ON)
+option(BUILD_TESTS "Enable building of the unit tests." OFF)
 message("Options:")
 message("\tEnable Xbyak: ${SKSE_SUPPORT_XBYAK}")
 message("\tEnable Patch Safety Checks: ${SKSE_SUPPORT_PATCH_SAFETY}")
@@ -17,6 +17,8 @@ message("\tEnable Skyrim AE: ${ENABLE_SKYRIM_AE}")
 message("\tEnable Skyrim VR: ${ENABLE_SKYRIM_VR}")
 message("\tBuild Tests: ${BUILD_TESTS}")
 
+set(RAPIDCSV_INCLUDE_DIRS "C:/Code/rapidcsv/src")
+
 if(NOT ENABLE_SKYRIM_SE AND NOT ENABLE_SKYRIM_AE AND NOT ENABLE_SKYRIM_VR)
 	message(FATAL_ERROR "At least one Skyrim runtime must be supported by the CommonLibSSE build.")
 endif()
@@ -24,7 +26,7 @@ endif()
 project(
 	CommonLibSSE
 	LANGUAGES CXX
-	VERSION 7.0.0
+	VERSION 6.6.0
 )
 
 include(CheckIPOSupported)

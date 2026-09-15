@@ -2,7 +2,9 @@
 
 #include "RE/N/NiSmartPointer.h"
 #include "RE/N/NiTexture.h"
-#include <REX/W32/D3D11.h>
+
+struct ID3D11Resource;
+struct ID3D11UnorderedAccessView;
 
 namespace RE
 {
@@ -11,16 +13,16 @@ namespace RE
 		class Texture
 		{
 		public:
-			REX::W32::ID3D11Resource*            texture;       // 00 - can be ID3D11Texture1D/ID3D11Texture2D/ID3D11Texture3D
-			REX::W32::ID3D11UnorderedAccessView* UAV;           // 08
-			REX::W32::ID3D11ShaderResourceView*  resourceView;  // 10
-			uint16_t                             height;        // 18
-			uint16_t                             width;         // 1A
-			uint8_t                              mips;          // 1C
-			uint8_t                              format;        // 1D
-			uint16_t                             unk1E;         // 1E
-			std::uint32_t                        refCount;      // 20
-			std::uint32_t                        pad24;         // 24
+			ID3D11Resource*            texture;       // 00 - can be ID3D11Texture1D/ID3D11Texture2D/ID3D11Texture3D
+			ID3D11UnorderedAccessView* UAV;           // 08
+			ID3D11ShaderResourceView*  resourceView;  // 10
+			uint16_t                   height;        // 18
+			uint16_t                   width;         // 1A
+			uint8_t                    mips;          // 1C
+			uint8_t                    format;        // 1D
+			uint16_t                   unk1E;         // 1E
+			std::uint32_t              refCount;      // 20
+			std::uint32_t              pad24;         // 24
 		};
 		static_assert(sizeof(Texture) == 0x28);
 

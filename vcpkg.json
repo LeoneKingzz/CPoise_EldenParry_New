@@ -1,26 +1,34 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "features": {
-    "commonlibsse-ng": {
-      "description": "Dependencies of clib-ng",
-      "dependencies": [
-        "catch2",
-        "fmt",
-        "directxtk",
-        "rapidcsv",
-        "spdlog"
-      ]
-    }
-  },
+  "name": "commonlibsse-plugin",
+  "version-string": "1.0.0",
+  "description": "",
+  "license": "GPL-3.0-or-later",
   "dependencies": [
-    "xbyak",
-    "clib-util",
-    "nlohmann-json",
-    "magic-enum",
-    "minhook"
+    {
+      "name": "directxmath",
+      "version>=": "2025-04-03"
+    },
+    {
+      "name": "directxtk",
+      "version>=": "2025-10-27"
+    },
+    {
+      "name": "fmt",
+      "version>=": "12.1.0"
+    },
+    {
+      "name": "spdlog",
+      "version>=": "1.16.0"
+    },
+    {
+      "name": "clib-util"
+    },
+    {
+      "name": "nlohmann-json"
+    },
+    {
+      "name": "magic-enum"
+    }
   ],
-  "default-features": [
-    "commonlibsse-ng"
-  ],
-  "builtin-baseline": "ce613c41372b23b1f51333815feb3edd87ef8a8b"
+  "builtin-baseline": "ee12231b20c95013c6638d845d04c91559a1d1ff"
 }
