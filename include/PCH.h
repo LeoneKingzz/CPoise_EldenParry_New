@@ -124,7 +124,7 @@ extern "C" DLLEXPORT  bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface * a
 
 	SKSE::Init(a_skse);
 
-	SKSE::AllocTrampoline(1 << 5);
+	// SKSE::AllocTrampoline(1 << 5);
 
 	PreLoad();
 	onSKSEInit();
