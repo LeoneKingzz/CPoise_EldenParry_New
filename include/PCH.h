@@ -25,6 +25,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+#include <ClibUtil/editorID.hpp>
+#include <ClibUtil/simpleINI.hpp>
+
 using namespace std::literals;
 
 namespace stl
@@ -78,6 +81,7 @@ namespace util
 void Load(bool VR);
 void Init();
 void PreLoad();
+void onSKSEInit();
 
 void InitializeLog()
 {
