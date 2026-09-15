@@ -28,6 +28,7 @@
 #include <ClibUtil/editorID.hpp>
 #include <ClibUtil/simpleINI.hpp>
 #include <magic_enum/magic_enum.hpp>
+#include <nlohmann/json.hpp>
 
 using namespace std::literals;
 
