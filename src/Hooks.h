@@ -190,7 +190,8 @@ namespace EldenHooks
 	{
 		//SKSE::AllocTrampoline(1 << 4);
 		// SKSE::AllocTrampoline(1 << 5);
-		SKSE::AllocTrampoline(32);
+		SKSE::AllocTrampoline(16);
+		SKSE::AllocTrampoline(16);
 		if (EldenSettings::bSuccessfulParryNoCost) {
 			Hook_getAttackStaminaCost::install();
 		}
