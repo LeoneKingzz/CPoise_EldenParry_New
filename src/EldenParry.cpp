@@ -84,18 +84,23 @@ std::chrono::milliseconds EldenParry::calculateRiposteReflex(RE::Actor* a_actor)
 }
 
 void EldenParry::startTimingParry(RE::Actor* a_actor) {
-
-	a_actor->SetGraphVariableBool("bCEP_inParryState", true);
-	std::lock_guard<std::shared_mutex> lk(mtx_parryTimer);
-	auto it = _parryTimer.find(a_actor);
-	if (it != _parryTimer.end()) {
-		it->second.first = std::chrono::steady_clock::now();
-		it->second.second = calculateRiposteReflex(a_actor);
-	} else {
-		
-		_parryTimer.emplace(a_actor, std::make_pair(std::chrono::steady_clock::now(), calculateRiposteReflex(a_actor)));
-	}
 	
+	if (!inlineUtils::isPowerAttacking(a_actor))
+	{
+		a_actor->SetGraphVariableBool("bCEP_inParryState", true);
+		std::lock_guard<std::shared_mutex> lk(mtx_parryTimer);
+		auto it = _parryTimer.find(a_actor);
+		if (it != _parryTimer.end())
+		{
+			it->second.first = std::chrono::steady_clock::now();
+			it->second.second = calculateRiposteReflex(a_actor);
+		}
+		else
+		{
+
+			_parryTimer.emplace(a_actor, std::make_pair(std::chrono::steady_clock::now(), calculateRiposteReflex(a_actor)));
+		}
+	}
 	//_bUpdate = true;
 }
 
