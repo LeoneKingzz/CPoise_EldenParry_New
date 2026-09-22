@@ -89,7 +89,6 @@ void EldenParry::startTimingParry(RE::Actor* a_actor) {
 	// {
 		
 	// }
-
 	a_actor->SetGraphVariableBool("bCEP_inParryState", true);
 	std::lock_guard<std::shared_mutex> lk(mtx_parryTimer);
 	auto it = _parryTimer.find(a_actor);
