@@ -387,7 +387,7 @@ float EldenParry::dist(const RE::NiPoint3 &A, const RE::NiPoint3 &B, const RE::N
 bool EldenParry::GetWeaponPositions(RE::Actor *actor, RE::AIProcess *const aiProcess,
 									RE::NiPoint3 &outFrom, RE::NiPoint3 &outTo, bool bash)
 {
-	const auto nodeName = (aiProcess->high->attackData->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
+	const auto nodeName = (aiProcess->high && aiProcess->high->attackData && aiProcess->high->attackData.get() && aiProcess->high->attackData.get()->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
 	const auto root = netimmerse_cast<RE::BSFadeNode *>(actor->Get3D());
 	if (!root)
 		return false;
