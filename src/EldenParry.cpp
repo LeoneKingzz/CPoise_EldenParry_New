@@ -19,8 +19,8 @@ void EldenParry::init() {
 			PRECISION_API::APIResult::OK) {
 			logger::info("Successfully registered precision API prehit callback.");
 		}
-		_precision_API->AddWeaponWeaponCollisionCallback(SKSE::GetPluginHandle(), EldenParry::PrecisionWeaponsCallback);
-		_precision_API->AddPostHitCallback(SKSE::GetPluginHandle(), EldenParry::PrecisionWeaponsCallback_Post);
+		//_precision_API->AddWeaponWeaponCollisionCallback(SKSE::GetPluginHandle(), EldenParry::PrecisionWeaponsCallback);
+		// _precision_API->AddPostHitCallback(SKSE::GetPluginHandle(), EldenParry::PrecisionWeaponsCallback_Post);
 		// _precision_API->AddPostHitCallback(SKSE::GetPluginHandle(), HitEventHandler::PoiseCallback_Post);
 	} else {
 		logger::info("Precision API not found.");
@@ -54,32 +54,31 @@ bool EldenParry::shouldIgnoreHit(RE::Actor *a_aggressor, RE::Actor *a_victim, bo
 {
 	// for aggressor: cancle parry hitframe.
 
-	// if (a_aggressor->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash)
-	// {
-	// 	bool isAggressorShieldEquipped = Utils::isEquippedShield(a_aggressor);
-	// 	if (!inlineUtils::isPowerAttacking(a_aggressor))
-	// 	{
-	// 		if (a_aggressor->IsPlayerRef() || EldenSettings::bEnableNPCParry)
-	// 		{
-	// 			if ((isAggressorShieldEquipped && EldenSettings::bEnableShieldParry) || EldenSettings::bEnableWeaponParry)
-	// 			{
-	// 				return true;
-	// 			}
-	// 		}
-	// 	}
-	// 	else
-	// 	{ // is power bash
-	// 		if (a_aggressor->IsPlayerRef() || EldenSettings::bEnableNPCParry)
-	// 		{
-	// 			if ((isAggressorShieldEquipped && EldenSettings::bEnableShieldGuardBash) || EldenSettings::bEnableWeaponGuardBash)
-	// 			{
-	// 				EldenParry::GetSingleton()->processGuardBash(a_aggressor, a_victim);
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// else 
-	if (a_victim->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash)
+	if (a_aggressor->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash)
+	{
+		bool isAggressorShieldEquipped = Utils::isEquippedShield(a_aggressor);
+		if (!inlineUtils::isPowerAttacking(a_aggressor))
+		{
+			if (a_aggressor->IsPlayerRef() || EldenSettings::bEnableNPCParry)
+			{
+				if ((isAggressorShieldEquipped && EldenSettings::bEnableShieldParry) || EldenSettings::bEnableWeaponParry)
+				{
+					return true;
+				}
+			}
+		}
+		else
+		{ // is power bash
+			if (a_aggressor->IsPlayerRef() || EldenSettings::bEnableNPCParry)
+			{
+				if ((isAggressorShieldEquipped && EldenSettings::bEnableShieldGuardBash) || EldenSettings::bEnableWeaponGuardBash)
+				{
+					EldenParry::GetSingleton()->processGuardBash(a_aggressor, a_victim);
+				}
+			}
+		}
+	}
+	else if (a_victim->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash)
 	{
 		if (a_victim->IsPlayerRef() || EldenSettings::bEnableNPCParry)
 		{
@@ -634,7 +633,7 @@ PRECISION_API::PreHitCallbackReturn EldenParry::precisionPrehitCallbackFunc(cons
 	// 	returnData.bIgnoreHit = true;
 	// }
 
-	if (EldenParry::shouldIgnoreHit(a_precisionHitData.attacker, a_precisionHitData.target->As<RE::Actor>(), true))
+	if (EldenParry::shouldIgnoreHit(a_precisionHitData.attacker, a_precisionHitData.target->As<RE::Actor>()))
 	{
 		returnData.bIgnoreHit = true;
 	}
