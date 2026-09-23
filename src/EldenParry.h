@@ -139,7 +139,7 @@ class EldenParry
 {   
 public:
     float GetScore(RE::Actor *actor, const Milf::Scores &scoreSettings);
-	
+
 	float AttackerBeatsParry(RE::Actor *attacker, RE::Actor *target);
 
 	const RE::TESObjectWEAP *const GetAttackWeapon(RE::AIProcess *const aiProcess);
@@ -177,6 +177,7 @@ public:
 	void startTimingParry(RE::Actor *a_actor);
 	void finishTimingParry(RE::Actor *a_actor);
 	std::chrono::milliseconds calculateRiposteReflex(RE::Actor* a_actor);
+	std::chrono::milliseconds GetWeaponParryWindow(RE::Actor *actor, const Milf::Scores &scoreSettings);
 
 	void send_melee_parry_event(RE::Actor* a_parrier, RE::FormID a_attackerID);
 	void send_ranged_parry_event();
