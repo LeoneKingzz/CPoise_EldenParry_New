@@ -415,10 +415,10 @@ bool EldenParry::IsParry(RE::Actor *hit_causer, RE::Actor *hit_target,
 		auto angle = abs(hit_causer->GetHeading(true) - hit_target->GetHeading(true));
 		if (angle > PI)
 		{
-			angle = 2.0 * PI - angle;
+			angle = 2.0f * PI - angle;
 		}
 
-		if (angle > PI * 0.75)
+		if (angle > PI * 0.75f)
 		{
 			// Make sure that the weapons are close together
 			RE::NiPoint3 attacker_from, attacker_to, victim_from, victim_to;
