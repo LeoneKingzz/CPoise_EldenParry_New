@@ -6,10 +6,12 @@
 using uniqueLocker = std::unique_lock<std::shared_mutex>;
 using sharedLocker = std::shared_lock<std::shared_mutex>;
 
+#undef max
+#undef min
 
 void EldenParry::init() {
 	logger::info("Obtaining precision API...");
-	_precision_API = reinterpret_cast<PRECISION_API::IVPrecision1*>(PRECISION_API::RequestPluginAPI());
+	_precision_API = reinterpret_cast<PRECISION_API::IVPrecision4 *>(PRECISION_API::RequestPluginAPI());
 	if (_precision_API) {
 		logger::info("Precision API successfully obtained.");
 		EldenSettings::facts::isPrecisionAPIObtained = true;
@@ -17,6 +19,8 @@ void EldenParry::init() {
 			PRECISION_API::APIResult::OK) {
 			logger::info("Successfully registered precision API prehit callback.");
 		}
+		_precision_API->AddWeaponWeaponCollisionCallback(SKSE::GetPluginHandle(), EldenParry::PrecisionWeaponsCallback);
+		_precision_API->AddPostHitCallback(SKSE::GetPluginHandle(), EldenParry::PrecisionWeaponsCallback_Post);
 		// _precision_API->AddPostHitCallback(SKSE::GetPluginHandle(), HitEventHandler::PoiseCallback_Post);
 	} else {
 		logger::info("Precision API not found.");
@@ -40,8 +44,61 @@ void EldenParry::init() {
 	}
 
 	//read fcombatHitConeAngle
+	_GMST_fCombatBashReach = RE::GameSettingCollection::GetSingleton()->GetSetting("fCombatBashReach")->GetFloat();
+	_parryReach = _GMST_fCombatBashReach;
 	_GMST_fCombatHitConeAngle = RE::GameSettingCollection::GetSingleton()->GetSetting("fCombatHitConeAngle")->GetFloat();
 	_parryAngle = _GMST_fCombatHitConeAngle;
+}
+
+bool EldenParry::shouldIgnoreHit(RE::Actor *a_aggressor, RE::Actor *a_victim, bool checkState)
+{
+	// for aggressor: cancle parry hitframe.
+
+	if (a_aggressor->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash)
+	{
+		bool isAggressorShieldEquipped = Utils::isEquippedShield(a_aggressor);
+		if (!inlineUtils::isPowerAttacking(a_aggressor))
+		{
+			if (a_aggressor->IsPlayerRef() || EldenSettings::bEnableNPCParry)
+			{
+				if ((isAggressorShieldEquipped && EldenSettings::bEnableShieldParry) || EldenSettings::bEnableWeaponParry)
+				{
+					return true;
+				}
+			}
+		}
+		else
+		{ // is power bash
+			if (a_aggressor->IsPlayerRef() || EldenSettings::bEnableNPCParry)
+			{
+				if ((isAggressorShieldEquipped && EldenSettings::bEnableShieldGuardBash) || EldenSettings::bEnableWeaponGuardBash)
+				{
+					EldenParry::GetSingleton()->processGuardBash(a_aggressor, a_victim);
+				}
+			}
+		}
+	}
+	else if (a_victim->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash)
+	{
+		if (a_victim->IsPlayerRef() || EldenSettings::bEnableNPCParry)
+		{
+			bool isDefenderShieldEquipped = Utils::isEquippedShield(a_victim);
+			if ((isDefenderShieldEquipped && EldenSettings::bEnableShieldParry) || EldenSettings::bEnableWeaponParry)
+			{
+				if (checkState)
+				{
+					if (GetBoolVariable(a_victim, "bCEP_inParryHit"))
+					{
+						return true;
+					}
+
+				}else{
+					return EldenParry::GetSingleton()->processMeleeParry(a_aggressor, a_victim);
+				}
+			}
+		}
+	}
+	return false;
 }
 
 void EldenParry::update(RE::Actor* a_actor, [[maybe_unused]] float a_delta)
@@ -286,18 +343,126 @@ bool EldenParry::inParryState(RE::Actor* a_actor)
 	return GetBoolVariable(a_actor, "bCEP_inParryState");
 }
 
-bool EldenParry::canParry(RE::Actor* a_parrier, RE::TESObjectREFR* a_obj)
+float EldenParry::Dist(const RE::NiPoint3 &A, const RE::NiPoint3 &B, const RE::NiPoint3 &C, const RE::NiPoint3 &D)
 {
-	//logger::info("{}",a_parrier->GetName());
-	return inParryState(a_parrier) && inBlockAngle(a_parrier, a_obj);
+	const auto CD = D - C;
+	float CD2 = CD.Dot(CD);
+	auto inPlaneA = A - (CD * (CD * (A - C) / CD2));
+	auto inPlaneB = B - (CD * (CD * (B - C) / CD2));
+	auto inPlaneBA = inPlaneB - inPlaneA;
+	const float inPlaneBA2 = inPlaneBA.Dot(inPlaneBA);
+	float t;
+	if (inPlaneBA2 < 0.00005f)
+		t = 0.0f;
+	else
+		t = inPlaneBA.Dot((C - inPlaneA)) / inPlaneBA2;
+	auto segABtoLineCD = Lerp(A, B, Clamp01(t));
+
+	return dist(A, B, constrainToSegment(segABtoLineCD, C, D));
 }
 
+RE::NiPoint3 EldenParry::Lerp(const RE::NiPoint3 &A, const RE::NiPoint3 &B, const float k)
+{
+	return A + (B - A) * k;
+}
+
+float EldenParry::Clamp01(const float t)
+{
+	return std::max(0.0f, std::min(1.0f, t));
+}
+
+RE::NiPoint3 EldenParry::constrainToSegment(const RE::NiPoint3 &position, const RE::NiPoint3 &a,
+											const RE::NiPoint3 &b)
+{
+	auto ba = b - a;
+	auto t = ba.Dot((position - a)) / (ba.Dot(ba));
+	return Lerp(a, b, Clamp01(t));
+}
+
+float EldenParry::dist(const RE::NiPoint3 &A, const RE::NiPoint3 &B, const RE::NiPoint3 &C)
+{
+	return constrainToSegment(C, A, B).GetDistance(C);
+}
+
+bool EldenParry::GetWeaponPositions(RE::Actor *actor, RE::AIProcess *const aiProcess,
+									RE::NiPoint3 &outFrom, RE::NiPoint3 &outTo, bool bash)
+{
+	const auto nodeName = (aiProcess->high->attackData->IsLeftAttack()) ? "SHIELD"sv : "WEAPON"sv;
+	const auto root = netimmerse_cast<RE::BSFadeNode *>(actor->Get3D());
+	if (!root)
+		return false;
+	const auto bone = netimmerse_cast<RE::NiNode *>(root->GetObjectByName(nodeName));
+	if (!bone)
+		return false;
+
+	float reach = _parryReach * 0.75f;
+	if(!bash){
+		reach = Parryfuncs::Actor_GetReach(actor) * 0.75f;
+	}
+	outFrom = bone->world.translate;
+	const auto weaponDirection =
+		RE::NiPoint3{bone->world.rotate.entry[0][1], bone->world.rotate.entry[1][1], bone->world.rotate.entry[2][1]};
+	outTo = outFrom + weaponDirection * reach;
+	return true;
+}
+
+bool EldenParry::IsParry(RE::Actor *hit_causer, RE::Actor *hit_target,
+						 RE::AIProcess *const attackerAI, RE::AIProcess *const targetAI)
+{
+	// Make sure that actors are facing each other
+	if(attackerAI && targetAI)
+	{
+		auto angle = abs(hit_causer->GetHeading(true) - hit_target->GetHeading(true));
+		if (angle > PI)
+		{
+			angle = 2.0 * PI - angle;
+		}
+
+		if (angle > PI * 0.75)
+		{
+			// Make sure that the weapons are close together
+			RE::NiPoint3 attacker_from, attacker_to, victim_from, victim_to;
+
+			if (!GetWeaponPositions(hit_causer, attackerAI, attacker_from,
+									attacker_to))
+			{
+				return false;
+			}
+
+			if (!GetWeaponPositions(hit_target, targetAI, victim_from,
+									victim_to, true))
+			{
+				return false;
+			}
+
+			const float d = Dist(attacker_from, attacker_to, victim_from, victim_to);
+			return d <= 120.0f;
+		}
+	}
+
+	return false;
+}
+
+bool EldenParry::canParry(RE::Actor *a_parrier, RE::Actor *a_attacker)
+{
+	//logger::info("{}",a_parrier->GetName());
+	return inParryState(a_parrier) && IsParry(a_attacker, a_parrier, a_attacker->GetActorRuntimeData().currentProcess, a_parrier->GetActorRuntimeData().currentProcess);
+}
+
+bool EldenParry::canParry(RE::Actor *a_parrier, RE::TESObjectREFR *a_obj)
+{
+	// logger::info("{}",a_parrier->GetName());
+	return inParryState(a_parrier) && inBlockAngle(a_parrier, a_obj);
+}
 
 bool EldenParry::processMeleeParry(RE::Actor* a_attacker, RE::Actor* a_parrier)
 {
 	if (canParry(a_parrier, a_attacker)) {
+		a_parrier->SetGraphVariableBool("bCEP_inParryHit", true);
 		playParryEffects(a_parrier);
 		Utils::triggerStagger(a_parrier, a_attacker);
+		a_parrier->SetGraphVariableBool("bCEP_inParryHit", false);
+
 		if (EldenSettings::facts::isValhallaCombatAPIObtained) {
 			_ValhallaCombat_API->processStunDamage(VAL_API::STUNSOURCE::parry, nullptr, a_parrier, a_attacker, 0);
 		}
@@ -464,10 +629,49 @@ PRECISION_API::PreHitCallbackReturn EldenParry::precisionPrehitCallbackFunc(cons
 	if (!a_precisionHitData.target || !a_precisionHitData.target->Is(RE::FormType::ActorCharacter)) {
 		return returnData;
 	}
-	if (EldenParry::GetSingleton()->processMeleeParry(a_precisionHitData.attacker, a_precisionHitData.target->As<RE::Actor>())) {
+	// if (EldenParry::GetSingleton()->processMeleeParry(a_precisionHitData.attacker, a_precisionHitData.target->As<RE::Actor>())) {
+	// 	returnData.bIgnoreHit = true;
+	// }
+
+	if (EldenParry::shouldIgnoreHit(a_precisionHitData.attacker, a_precisionHitData.target->As<RE::Actor>(), true))
+	{
 		returnData.bIgnoreHit = true;
 	}
+
 	return returnData;
+}
+
+PRECISION_API::WeaponCollisionCallbackReturn EldenParry::PrecisionWeaponsCallback(const PRECISION_API::PrecisionHitData &a_precisionHitData)
+{
+
+	PRECISION_API::WeaponCollisionCallbackReturn ret;
+	if (!a_precisionHitData.target || !a_precisionHitData.target->Is(RE::FormType::ActorCharacter))
+	{
+		ret.bIgnoreHit = false;
+		return ret;
+	}
+
+	// if (ReprisalCalc::GetSingleton()->processMeleeParry(a_precisionHitData.attacker, a_precisionHitData.target->As<RE::Actor>()))
+	// {
+	// 	return ret;
+	// }
+
+	if (EldenParry::shouldIgnoreHit(a_precisionHitData.attacker, a_precisionHitData.target->As<RE::Actor>()))
+	{
+		return ret;
+	}
+
+	ret.bIgnoreHit = false;
+	return ret;
+}
+
+void EldenParry::PrecisionWeaponsCallback_Post(const PRECISION_API::PrecisionHitData &a_precisionHitData, const RE::HitData &)
+{
+	if (!a_precisionHitData.target || !a_precisionHitData.target->Is(RE::FormType::ActorCharacter))
+	{
+		return;
+	}
+	return;
 }
 
 const RE::TESObjectWEAP *const EldenParry::GetAttackWeapon(RE::AIProcess *const aiProcess)

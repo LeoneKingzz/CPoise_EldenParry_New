@@ -10,6 +10,11 @@
 using std::string;
 using PRECISION_API::PostHitCallback;
 
+namespace Parryfuncs{
+	typedef float (*tActor_GetReach)(RE::Actor *a_this);
+	static REL::Relocation<tActor_GetReach> Actor_GetReach{RELOCATION_ID(37588, 38538)};
+}
+
 class Milf
 {
 public:
@@ -164,7 +169,7 @@ public:
 
 	void processGuardBash(RE::Actor *a_basher, RE::Actor *a_blocker);
 
-	PRECISION_API::IVPrecision1 *_precision_API;
+	PRECISION_API::IVPrecision4 *_precision_API;
 	VAL_API::IVVAL1 *_ValhallaCombat_API;
 
 	void applyParryCost(RE::Actor *a_actor);
@@ -206,6 +211,8 @@ public:
 		return result;
 	}
 
+	static bool shouldIgnoreHit(RE::Actor *a_aggressor, RE::Actor *a_victim, bool checkState = false);
+
 	bool IsValidLifeState(RE::Actor* a_actor, bool checkDeath)
 	{
 		if (checkDeath) {
@@ -236,9 +243,20 @@ private:
 	void playParryEffects(RE::Actor *a_parrier);
 
 	bool inParryState(RE::Actor *a_parrier);
+	bool canParry(RE::Actor *a_parrier, RE::Actor *a_attacker);
 	bool canParry(RE::Actor *a_parrier, RE::TESObjectREFR *a_obj);
 	bool inBlockAngle(RE::Actor *a_blocker, RE::TESObjectREFR *a_obj);
+	bool IsParry(RE::Actor *hit_causer, RE::Actor *hit_target, RE::AIProcess *const attackerAI, RE::AIProcess *const targetAI);
+	bool GetWeaponPositions(RE::Actor *actor, RE::AIProcess *const aiProcess, RE::NiPoint3 &outFrom, RE::NiPoint3 &outTo, bool bash = false);
+	float Dist(const RE::NiPoint3 &A, const RE::NiPoint3 &B, const RE::NiPoint3 &C, const RE::NiPoint3 &D);
+	RE::NiPoint3 Lerp(const RE::NiPoint3 &A, const RE::NiPoint3 &B, const float k);
+	float Clamp01(const float t);
+	RE::NiPoint3 constrainToSegment(const RE::NiPoint3 &position, const RE::NiPoint3 &a, const RE::NiPoint3 &b);
+	float dist(const RE::NiPoint3 &A, const RE::NiPoint3 &B, const RE::NiPoint3 &C);
+
 	static PRECISION_API::PreHitCallbackReturn precisionPrehitCallbackFunc(const PRECISION_API::PrecisionHitData &a_precisionHitData);
+	static PRECISION_API::WeaponCollisionCallbackReturn PrecisionWeaponsCallback(const PRECISION_API::PrecisionHitData &a_precisionHitData);
+	static void PrecisionWeaponsCallback_Post(const PRECISION_API::PrecisionHitData &a_precisionHitData, const RE::HitData &);
 
 	// std::unordered_map<RE::Actor *, float> _parryCostQueue;
 	// std::unordered_set<RE::Actor *> _parrySuccessActors;
@@ -246,6 +264,8 @@ private:
 
 	RE::BGSSoundDescriptorForm *_parrySound_shd;
 	RE::BGSSoundDescriptorForm *_parrySound_wpn;
+	float _GMST_fCombatBashReach;
+	float _parryReach;
 	float _GMST_fCombatHitConeAngle;
 	float _parryAngle;
 

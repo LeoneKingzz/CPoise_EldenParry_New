@@ -39,39 +39,11 @@ namespace EldenHooks
 		}
 
 	private:
-		static bool shouldIgnoreHit(RE::Actor* a_aggressor, RE::Actor* a_victim)
-		{
-			//for aggressor: cancle parry hitframe.
-			
-			if (a_aggressor->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash) {
-				bool isAggressorShieldEquipped = Utils::isEquippedShield(a_aggressor);
-				if (!inlineUtils::isPowerAttacking(a_aggressor)) {
-					if (a_aggressor->IsPlayerRef() || EldenSettings::bEnableNPCParry) {
-						if ((isAggressorShieldEquipped && EldenSettings::bEnableShieldParry) || EldenSettings::bEnableWeaponParry) {
-							return true;
-						} 
-					}
-				} else {//is power bash
-					if (a_aggressor->IsPlayerRef() || EldenSettings::bEnableNPCParry) {
-						if ((isAggressorShieldEquipped && EldenSettings::bEnableShieldGuardBash) || EldenSettings::bEnableWeaponGuardBash) {
-							EldenParry::GetSingleton()->processGuardBash(a_aggressor, a_victim);
-						} 
-					}
-				}
-				
-			} else if (a_victim->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash) {
-				if (a_victim->IsPlayerRef() || EldenSettings::bEnableNPCParry) {
-					bool isDefenderShieldEquipped = Utils::isEquippedShield(a_victim);
-					if ((isDefenderShieldEquipped && EldenSettings::bEnableShieldParry) || EldenSettings::bEnableWeaponParry) {
-						return EldenParry::GetSingleton()->processMeleeParry(a_aggressor, a_victim);
-					}
-				}
-			}
-			return false;
-		}
+
 		static void processHit(RE::Actor* a_aggressor, RE::Actor* a_victim, std::int64_t a_int1, bool a_bool, void* a_unkptr)
 		{
-			if (shouldIgnoreHit(a_aggressor, a_victim)) {
+			if (EldenParry::shouldIgnoreHit(a_aggressor, a_victim, EldenSettings::facts::isPrecisionAPIObtained))
+			{
 				return;
 			}
 			_ProcessHit(a_aggressor, a_victim, a_int1, a_bool, a_unkptr);
@@ -120,7 +92,7 @@ namespace EldenHooks
 		};
 
 	private:
-		static bool shouldIgnoreHit(RE::Projectile* a_projectile, RE::hkpAllCdPointCollector* a_AllCdPointCollector)
+		static bool IgnoreHit(RE::Projectile* a_projectile, RE::hkpAllCdPointCollector* a_AllCdPointCollector)
 		{
 			if (a_AllCdPointCollector) {
 				for (auto& hit : a_AllCdPointCollector->hits) {
@@ -146,7 +118,7 @@ namespace EldenHooks
 		}
 		static void OnArrowCollision(RE::Projectile* a_this, RE::hkpAllCdPointCollector* a_AllCdPointCollector)
 		{
-			if (shouldIgnoreHit(a_this, a_AllCdPointCollector)) {
+			if (IgnoreHit(a_this, a_AllCdPointCollector)) {
 				return;
 			};
 			_arrowCollission(a_this, a_AllCdPointCollector);
@@ -154,7 +126,7 @@ namespace EldenHooks
 
 		static void OnMissileCollision(RE::Projectile* a_this, RE::hkpAllCdPointCollector* a_AllCdPointCollector)
 		{
-			if (shouldIgnoreHit(a_this, a_AllCdPointCollector)) {
+			if (IgnoreHit(a_this, a_AllCdPointCollector)) {
 				return;
 			};
 			_missileCollission(a_this, a_AllCdPointCollector);
