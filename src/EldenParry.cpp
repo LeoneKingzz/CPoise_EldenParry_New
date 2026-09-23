@@ -293,26 +293,26 @@ void EldenParry::startTimingParry(RE::Actor* a_actor) {
 		
 	// }
 	a_actor->SetGraphVariableBool("bCEP_inParryState", true);
-	std::lock_guard<std::shared_mutex> lk(mtx_parryTimer);
-	auto it = _parryTimer.find(a_actor);
-	if (it != _parryTimer.end())
-	{
-		it->second.first = std::chrono::steady_clock::now();
-		it->second.second = calculateRiposteReflex(a_actor);
-	}
-	else
-	{
+	// std::lock_guard<std::shared_mutex> lk(mtx_parryTimer);
+	// auto it = _parryTimer.find(a_actor);
+	// if (it != _parryTimer.end())
+	// {
+	// 	it->second.first = std::chrono::steady_clock::now();
+	// 	it->second.second = calculateRiposteReflex(a_actor);
+	// }
+	// else
+	// {
 
-		_parryTimer.emplace(a_actor, std::make_pair(std::chrono::steady_clock::now(), calculateRiposteReflex(a_actor)));
-	}
+	// 	_parryTimer.emplace(a_actor, std::make_pair(std::chrono::steady_clock::now(), calculateRiposteReflex(a_actor)));
+	// }
 	//_bUpdate = true;
 }
 
 void EldenParry::finishTimingParry(RE::Actor* a_actor) {
 	
 	a_actor->SetGraphVariableBool("bCEP_inParryState", false);
-	std::lock_guard<std::shared_mutex> lk(mtx_parryTimer);
-	_parryTimer.erase(a_actor);
+	// std::lock_guard<std::shared_mutex> lk(mtx_parryTimer);
+	// _parryTimer.erase(a_actor);
 }
 
 /// <summary>
@@ -340,7 +340,9 @@ bool EldenParry::inParryState(RE::Actor* a_actor)
 	// }
 	// return false;
 
-	return GetBoolVariable(a_actor, "bCEP_inParryState");
+	// return GetBoolVariable(a_actor, "bCEP_inParryState");
+
+	return (a_actor->AsActorState()->GetAttackState() == RE::ATTACK_STATE_ENUM::kBash || GetBoolVariable(a_actor, "IsBashing")) && !inlineUtils::isPowerAttacking(a_actor);
 }
 
 float EldenParry::Dist(const RE::NiPoint3 &A, const RE::NiPoint3 &B, const RE::NiPoint3 &C, const RE::NiPoint3 &D)
