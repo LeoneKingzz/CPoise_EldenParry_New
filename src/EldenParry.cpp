@@ -72,14 +72,16 @@ std::chrono::milliseconds EldenParry::calculateRiposteReflex(RE::Actor* a_actor)
 	// make new func to calculate unique weapon parry times and set as initial a_value.
 	auto a_value = 200ms;
 
-	if (Utils::isEquippedShield(a_actor)) {
-		a_value += 100ms;
-	}
-	if (const auto perk = RE::TESForm::LookupByEditorID<RE::BGSPerk>(Milf::GetSingleton()->perks.QuickReflexes_Perk); perk) {
-		if(a_actor->HasPerk(perk)){
+	a_value += GetWeaponParryWindow(a_actor, Milf::GetSingleton()->scores);
+
+	if (const auto perk = RE::TESForm::LookupByEditorID<RE::BGSPerk>(Milf::GetSingleton()->perks.QuickReflexes_Perk); perk) 
+	{
+		if(a_actor->HasPerk(perk))
+		{
 			a_value += 100ms;
 		}
 	}
+	
 	return a_value;
 }
 
@@ -340,6 +342,150 @@ const RE::TESObjectWEAP *const EldenParry::GetAttackWeapon(RE::AIProcess *const 
 	}
 
 	return nullptr;
+}
+
+std::chrono::milliseconds EldenParry::GetWeaponParryWindow(RE::Actor *actor, const Milf::Scores &scoreSettings)
+{
+	auto result = 0ms;
+	float score = 0.0f;
+
+	const auto race = actor->GetRace();
+	const auto raceFormID = race->formID;
+
+	auto weaponAI = actor->GetActorRuntimeData().currentProcess;
+
+	if (weaponAI && weaponAI->high && weaponAI->high->attackData)
+	{
+		const RE::TESForm *weaponL = weaponAI->high->attackData->IsLeftAttack() ? weaponAI->GetEquippedLeftHand() : weaponAI->GetEquippedRightHand();
+
+		if (weaponL)
+		{
+			if (weaponL->IsWeapon())
+			{
+				auto weapon = (weaponL->As<RE::TESObjectWEAP>());
+				switch (weapon->GetWeaponType())
+				{
+				case RE::WEAPON_TYPE::kOneHandSword:
+					score += scoreSettings.oneHandSwordScore;
+					break;
+				case RE::WEAPON_TYPE::kOneHandAxe:
+					score += scoreSettings.oneHandAxeScore;
+					break;
+				case RE::WEAPON_TYPE::kOneHandMace:
+					score += scoreSettings.oneHandMaceScore;
+					break;
+				case RE::WEAPON_TYPE::kOneHandDagger:
+					score += scoreSettings.oneHandDaggerScore;
+					break;
+				case RE::WEAPON_TYPE::kTwoHandAxe:
+					score += scoreSettings.twoHandAxeScore;
+					break;
+				case RE::WEAPON_TYPE::kTwoHandSword:
+					score += scoreSettings.twoHandSwordScore;
+					break;
+				case RE::WEAPON_TYPE::kHandToHandMelee:
+					score += 10.0f;
+					break;
+				case RE::WEAPON_TYPE::kBow:
+					score += -50.0f;
+					break;
+				case RE::WEAPON_TYPE::kCrossbow:
+					score += -40.0f;
+					break;
+				case RE::WEAPON_TYPE::kStaff:
+					score += 5.0f;
+					break;
+				}
+				const auto actorValue = weapon->weaponData.skill.get();
+				switch (actorValue)
+				{
+				case RE::ActorValue::kOneHanded:
+					score += (scoreSettings.weaponSkillWeight *
+							  actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kOneHanded));
+					break;
+				case RE::ActorValue::kTwoHanded:
+					score += (scoreSettings.weaponSkillWeight *
+							  actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kTwoHanded));
+					break;
+				default:
+					// Do nothing
+					break;
+				}
+			}
+			else
+			{
+				score += 100.0f;
+				score += (scoreSettings.weaponSkillWeight *
+						  actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kBlock));
+			}
+		}
+	}
+
+	score += (0.1f * actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina));
+
+	if (raceFormID == 0x13743 || raceFormID == 0x88840)
+	{
+		score += scoreSettings.altmerScore;
+	}
+	else if (raceFormID == 0x13740 || raceFormID == 0x8883A)
+	{
+		score += scoreSettings.argonianScore;
+	}
+	else if (raceFormID == 0x13749 || raceFormID == 0x88884)
+	{
+		score += scoreSettings.bosmerScore;
+	}
+	else if (raceFormID == 0x13741 || raceFormID == 0x8883C)
+	{
+		score += scoreSettings.bretonScore;
+	}
+	else if (raceFormID == 0x13742 || raceFormID == 0x8883D)
+	{
+		score += scoreSettings.dunmerScore;
+	}
+	else if (raceFormID == 0x13744 || raceFormID == 0x88844)
+	{
+		score += scoreSettings.imperialScore;
+	}
+	else if (raceFormID == 0x13745 || raceFormID == 0x88845)
+	{
+		score += scoreSettings.khajiitScore;
+	}
+	else if (raceFormID == 0x13746 || raceFormID == 0x88794)
+	{
+		score += scoreSettings.nordScore;
+	}
+	else if (raceFormID == 0x13747 || raceFormID == 0xA82B9)
+	{
+		score += scoreSettings.orcScore;
+	}
+	else if (raceFormID == 0x13748 || raceFormID == 0x88846)
+	{
+		score += scoreSettings.redguardScore;
+	}
+
+	if (Utils::isHumanoid(actor))
+	{
+		const auto actorBase = actor->GetActorBase();
+		if (actorBase && actorBase->IsFemale())
+		{
+			score += scoreSettings.femaleScore;
+		}
+	}
+
+	if (actor->IsPlayerRef())
+	{
+		score += scoreSettings.playerScore;
+	}
+
+	if(score < 0.0f)
+	{
+		score = 0.0f;
+	}
+
+	result = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(static_cast<double>(score) / 1000));
+
+	return result;
 }
 
 float EldenParry::GetScore(RE::Actor *actor, const Milf::Scores &scoreSettings)
