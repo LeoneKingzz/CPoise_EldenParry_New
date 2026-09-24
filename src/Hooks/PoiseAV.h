@@ -200,7 +200,7 @@ protected:
 			static void thunk(RE::Actor* a_actor, float a_delta)
 			{
 				func(a_actor, a_delta);
-				EldenParry::GetSingleton()->update(a_actor, g_deltaTime);
+				// EldenParry::GetSingleton()->update(a_actor, g_deltaTime);
 				GetSingleton()->Update(a_actor, g_deltaTime);
 			}
 			static inline REL::Relocation<decltype(thunk)> func;

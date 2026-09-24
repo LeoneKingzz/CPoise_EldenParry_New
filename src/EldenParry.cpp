@@ -802,6 +802,14 @@ float EldenParry::GetScore(RE::Actor *actor, const Milf::Scores &scoreSettings)
 
 	score += (0.35f * actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina));
 
+	if (const auto perk = RE::TESForm::LookupByEditorID<RE::BGSPerk>(Milf::GetSingleton()->perks.QuickReflexes_Perk); perk)
+	{
+		if (actor->HasPerk(perk))
+		{
+			score += 200.0f;
+		}
+	}
+
 	if (raceFormID == 0x13743 || raceFormID == 0x88840) {
 		score += scoreSettings.altmerScore;
 	} else if (raceFormID == 0x13740 || raceFormID == 0x8883A) {
